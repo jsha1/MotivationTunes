@@ -1,17 +1,17 @@
 
 # coding: utf-8
 
-# In[11]:
+# In[4]:
 
 import pafy
 import sqlite3
 import configparser
 
 
-# In[13]:
+# In[11]:
 
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.readfp(open('/storage/emulated/0/qpython/motivationtunes/config.ini'))
 playlistIds = config['media']['playlists'].split(',')
 
 #DB_PATH = "/home/jerry/sandbox/youtube-dl/db/"
@@ -20,7 +20,7 @@ DB_PATH = config['paths']['DB_PATH']
 MUSIC_PATH = config['paths']['MUSIC_PATH']
 
 
-# In[14]:
+# In[8]:
 
 def downloadVideos(valid_pafys, c, conn):
     for pafy in valid_pafys:
@@ -55,7 +55,7 @@ def downloadVideo(pafy,c,conn):
     print("download complete!")
 
 
-# In[15]:
+# In[9]:
 
 
 
