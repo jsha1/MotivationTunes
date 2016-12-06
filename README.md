@@ -14,6 +14,7 @@ via QPython install (via pip)
 Sqlite3
 pafy (https://pypi.python.org/pypi/pafy)
 youtube-dl (https://rg3.github.io/youtube-dl/download.html)
+configparser
 
 ## Usage
 
