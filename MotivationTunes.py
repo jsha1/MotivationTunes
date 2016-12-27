@@ -1,26 +1,32 @@
 
 # coding: utf-8
 
-# In[4]:
+# In[10]:
 
 import pafy
 import sqlite3
 import configparser
+import os
 
 
-# In[11]:
+# In[39]:
 
 config = configparser.ConfigParser()
-config.readfp(open('/storage/emulated/0/qpython/motivationtunes/config.ini'))
+script_dir = os.path.dirname(__file__)
+if script_dir[-1] != '/':
+    script_dir += '/'
+
+config.readfp(open(script_dir + 'config.ini'))
 playlistIds = config['media']['playlists'].split(',')
+print playlistIds
 
 #DB_PATH = "/home/jerry/sandbox/youtube-dl/db/"
 #MUSIC_PATH = "/home/jerry/sandbox/youtube-dl/tmp/"
-DB_PATH = config['paths']['DB_PATH']
+DB_PATH = script_dir + '/' + config['paths']['DB_PATH']
 MUSIC_PATH = config['paths']['MUSIC_PATH']
 
 
-# In[8]:
+# In[37]:
 
 def downloadVideos(valid_pafys, c, conn):
     for pafy in valid_pafys:
@@ -37,25 +43,29 @@ def downloadVideo(pafy,c,conn):
 
     mark(pafy.videoid,c, 'DOWNLOADING')
     conn.commit()
-   
-    streams = pafy.audiostreams
-    valid_streams = (stream for stream in streams if stream.extension in ('mp3','m4a','wma','flac','ogg'))
-    chosen = valid_streams.next()
-    if chosen:
+    try:
+        streams = pafy.audiostreams
+    except Exception:
+        print "exception while getting stream for video %s" % (pafy.videoid)
+        return
     
+    valid_streams = (stream for stream in streams if stream.extension in ('mp3','m4a','wma','flac','ogg'))
+ 
+    chosen = valid_streams.next()
+    if chosen: 
         filename = pafy.title + "_" + pafy.videoid + "." + chosen.extension
         chosen.download(filepath=MUSIC_PATH + filename)
     else:
-          markCompleted(pafy.videoid,c,'NO_AUDIO_STREAMS')
-          return
+        markCompleted(pafy.videoid,c,'NO_AUDIO_STREAMS')
+        return
     
     markCompleted(pafy.videoid,c,'COMPLETED')
     conn.commit()
   
-    print("download complete!")
+    print("download %s complete!" % pafy.videoid)
 
 
-# In[9]:
+# In[38]:
 
 
 
@@ -78,7 +88,6 @@ def createTableIfNotExists(c):
 def videoAlreadyProcessed(c,video_id):
     c.execute("SELECT video_id FROM video WHERE video_id = ?", [(video_id)]);
     result = c.fetchone()
-    print result
     return result
         
 def mark(video_id, c, status):
@@ -102,13 +111,10 @@ def main():
     conn = sqlite3.connect(DB_PATH + 'MotivationTunes.db')
     c = conn.cursor()
     createTableIfNotExists(c)
-    
-    print playlistIds
-
+    valid_pafys = []
     for playlistId in playlistIds:
         plurl = 'https://www.youtube.com/playlist?list=' + playlistId
         playlist = pafy.get_playlist(plurl)
-        valid_pafys = []
         for item in playlist['items']:
             if not videoAlreadyProcessed(c, item['pafy'].videoid):
                 valid_pafys.append(item['pafy'])
@@ -124,6 +130,11 @@ if __name__ == '__main__':
     main()
 
         
+
+
+
+# In[ ]:
+
 
 
 
